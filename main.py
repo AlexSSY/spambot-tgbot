@@ -12,7 +12,11 @@ from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
 from telethon.tl.functions.messages import GetDialogsRequest
 from telethon.tl.types import InputPeerEmpty
-from telethon.errors import SessionPasswordNeededError, PhoneNumberInvalidError
+from telethon.errors import (
+    SessionPasswordNeededError,
+    PhoneNumberInvalidError,
+    FloodWaitError
+)
 
 load_dotenv()
 
@@ -145,6 +149,11 @@ async def process_phone(message: types.Message, state: FSMContext):
         await AddSessionStates.waiting_for_code.set()
     except PhoneNumberInvalidError:
         await message.answer("Неверный номер телефона")
+    except FloodWaitError as e:
+        await message.answer(f"Слишком рано подождите: {e.seconds} секунд")
+    except:
+        await message.answer("Ну вообще залупа, давай сначала")
+        await state.finish()
 
 
 @dp.message_handler(state=AddSessionStates.waiting_for_code)
